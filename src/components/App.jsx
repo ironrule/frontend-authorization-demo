@@ -7,8 +7,10 @@ import Register from "./Register";
 import ProtectedRoute from "./ProtectedRoute";
 import "./styles/App.css";
 import * as auth from "../utils/auth";
+import { getToken, setToken } from "../utils/token";
 
 function App() {
+  const [userData, setUserData] = useState({ username: "", email: "" });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const navigate = useNavigate();
@@ -29,6 +31,23 @@ function App() {
     }
   };
 
+  const handleLogin = ({ username, password }) => {
+    if (!username || !password) {
+      return;
+    }
+
+    auth
+      .authorize(username, password)
+      .then((data) => {
+        if (data.jwt) {
+          setUserData(data.user);
+          setIsLoggedIn(true);
+          navigate("/ducks");
+        }
+      })
+      .catch(console.error);
+  };
+
   return (
     <Routes>
       <Route
@@ -43,7 +62,7 @@ function App() {
         path="/my-profile"
         element={
           <ProtectedRoute isLoggedIn={isLoggedIn}>
-            <MyProfile />
+            <MyProfile userData={userData} />
           </ProtectedRoute>
         }
       />
@@ -51,7 +70,7 @@ function App() {
         path="/login"
         element={
           <div className="loginContainer">
-            <Login />
+            <Login handleLogin={handleLogin} />
           </div>
         }
       />
